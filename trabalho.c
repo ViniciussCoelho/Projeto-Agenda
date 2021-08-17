@@ -12,6 +12,14 @@ struct Contact {
   int id;
 };
 
+struct Temp {
+  int id;
+  char name[30];
+  char email[30]; 
+  char phone[30];
+  int cost;
+};
+
 FILE* openFile(char* mode){
   FILE *f;
   f = fopen(FILENAME, mode);
@@ -28,8 +36,10 @@ int getLastRow(FILE* file) {
   fseek(file, 0, SEEK_END);
   return ftell(file)/sizeof(struct Contact);
 }
+
 int validEmail(char* email) {
   int count = 0;
+  
   for (int i = 0; i < strlen(email);i++){
     if(email[i] == '@'){
       count++;
@@ -51,7 +61,8 @@ void insert(){
     printf("\nDigite o email:");
     scanf("%s", contact.email);
     isValidEmail = validEmail(contact.email);
-  } while (isValidEmail != 1);
+    if(!isValidEmail) printf("Entre com um email válido.");
+  } while (!isValidEmail);
   printf("\nDigite o telefone:");
   scanf("%s", contact.phone);
   contact.status = 1;
@@ -77,6 +88,7 @@ void removeContact() {
   }
   fclose(file);
 }
+
 void update(){
  FILE *file = openFile("r+");
   int id,isValidEmail;
@@ -90,8 +102,8 @@ void update(){
   do{
     printf("\nDigite o novo email:");
     scanf("%s", newContact.email);
-    isValidEmail = validEmail(contact.email);
-  } while (isValidEmail != 1);
+    isValidEmail = validEmail(newContact.email);
+  } while (!isValidEmail);
 
   printf("\nDigite o novo telefone:");
   scanf("%s", newContact.phone);
@@ -109,7 +121,7 @@ void update(){
 }
 
 void list(){
-  FILE* file = openFile("r");
+  FILE* file = openFile("r+");
   struct Contact contact;
   while(fread(&contact, sizeof(struct Contact), 1, file)){
     if(contact.status != 0) {
@@ -121,54 +133,109 @@ void list(){
       printf("--------------------------------------------------------\n");
     }
   }
+  fclose(file);
 }
 
-// int minimum(int x, int y, int z){	
-// 	if(x <= y && x <= z){
-// 		return x;
-// 	}else 
-// 		if(y <= x && y <= z){
-// 			return y;
-// 		}else 
-// 			if(z <= x && z <= y){
-// 				return z;
-// 			}
-// }
+int distance(const char * word1, int len1,const char * word2,int len2) {
+  int matrix[len1 + 1][len2 + 1];
+  int i;
+  for (i = 0; i <= len1; i++) {
+    matrix[i][0] = i;
+  }
+  for (i = 0; i <= len2; i++) {
+    matrix[0][i] = i;
+  }
+  for (i = 1; i <= len1; i++) {
+    int j;
+    char c1;
 
-// int cost() {
-//   	for (i = 1; i <= contact; i++)
-//         m[i][0] = m[i-1][0] + 1;
-//     for (j = 1; j <= a; j++)
-//         m[0][j] = m[0][j-1] + 1;
-//     for (i = 1; i <= b; i++)
-//         for (j = 1; j <= a; j++)
-//             m[i][j] = minimum(m[i-1][j] + 1, m[i][j-1] + 1, m[i-1][j-1] + (palavra1[j-1] == palavra2[i-1] ? 0 : 1));
+    c1 = word1[i-1];
+    for (j = 1; j <= len2; j++) {
+      char c2;
 
-//     cost = m[b][a];
+      c2 = word2[j-1];
+      if (c1 == c2) {
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        int delete;
+        int insert;
+        int substitute;
+        int minimum;
 
-//     return cost;
-// }
+        delete = matrix[i-1][j] + 1;
+        insert = matrix[i][j-1] + 1;
+        substitute = matrix[i-1][j-1] + 1;
+        minimum = delete;
+        if (insert < minimum) {
+          minimum = insert;
+        }
+        if (substitute < minimum) {
+          minimum = substitute;
+        }
+        matrix[i][j] = minimum;
+      }
+    }
+  }
+  return matrix[len1][len2];
+}
 
-// void search(char *src){
-//   FILE *file = openFile("r");
-//   struct Contact contact;
+void search(char *src){
+  FILE *file = openFile("r+");
+  char name[30];
 
-//   printf("Digite o nome do contato que deseja buscar: ");
-// 	scanf("%s",contact.name);
-//   struct Contact contact;
-//   int matrix[1][2];
-//   while(fread(&contact, sizeof(struct Contact), 1, file)){
-//     if(contact.status != 0) {
-//       // Achar custo
-//       // Adicionar Id e custo na matriz
-//     }
-//   }
-//   // Ordenar matriz
-//   // Imprimir
-// }
+  printf("Digite o nome do contato que deseja buscar: ");
+  scanf(" %s",name);
+
+  struct Contact contact;
+  int n = 1;
+  struct Temp *vector = calloc(n, sizeof(struct Temp*));
+
+  while(fread(&contact, sizeof(struct Contact), 1, file)){
+    if(contact.status != 0) {
+      int cost = distance(name, strlen(name), contact.name, strlen(contact.name));
+      if(cost <= 5 && n != 1) {
+        vector = (struct Temp*) realloc(vector, (n+1)*sizeof(struct Temp*));
+        vector[n-1].cost = cost;
+        vector[n - 1].id = contact.id;
+        strcpy(vector[n-1].name, contact.name);
+        strcpy(vector[n-1].email, contact.email);
+        strcpy(vector[n-1].phone, contact.phone);
+        n++;
+      }
+
+      if(cost <= 5 && n == 1) {
+        vector[0].cost = cost;
+        vector[0].id = contact.id;
+        strcpy(vector[0].name, contact.name);
+        strcpy(vector[0].email, contact.email);
+        strcpy(vector[0].phone, contact.phone);
+        n++;
+      }
+    }
+  }
+
+  struct Temp aux;
+  for(int i=0; i<n-1; i++ ){
+    for (int j = i + 1; j < n - 1; j++)
+    {
+      if (vector[i].cost > vector[j].cost)
+      {
+        aux = vector[i];
+        vector[i] = vector[j];
+        vector[j] = aux;
+      }
+    }
+  }
+  for (int i = 0; i < n-1;i++){
+    printf("\n%d. ID: %i Nome: %s Email: %s Telefone: %s\n",
+           i + 1,
+           vector[i].id,
+           vector[i].name,
+           vector[i].email,
+           vector[i].phone);
+  }
+}
 	
-
-
 void menu(){
   int resp;
   do
