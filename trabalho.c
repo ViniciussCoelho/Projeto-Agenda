@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include<stdlib.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define FILENAME "file.txt"
 
@@ -24,108 +25,105 @@ FILE* openFile(char* mode){
 }
 
 int getLastRow(FILE* file) {
-  int lines = 0;
-  struct Contact *contact = malloc(sizeof(struct Contact));
-  while(!feof(file)) {
-    fread(contact, sizeof(struct Contact), 1, file);
-    lines++;
+  fseek(file, 0, SEEK_END);
+  return ftell(file)/sizeof(struct Contact);
+}
+int validEmail(char* email) {
+  int count = 0;
+  for (int i = 0; i < strlen(email);i++){
+    if(email[i] == '@'){
+      count++;
+    }
   }
-  return lines;
+
+  return count == 1;
 }
 
 void insert(){
   FILE *file = openFile("a+");
-  struct Contact *contact = malloc(sizeof(struct Contact));
+  struct Contact contact;
   int lastRow = getLastRow(file);
 
   printf("\nDigite o nome:");
-  scanf("%s", contact->name);
-  int isValidEmail = 1;
-  // do{
+  scanf("%s", contact.name);
+  int isValidEmail = 0;
+  do{
     printf("\nDigite o email:");
-    scanf("%s", contact->email);
-
-  // } while (isValidEmail);
+    scanf("%s", contact.email);
+    isValidEmail = validEmail(contact.email);
+  } while (isValidEmail != 1);
   printf("\nDigite o telefone:");
-  scanf("%s", contact->phone);
-  contact->status = 1;
-  contact->id = lastRow++;
-  fwrite(contact, sizeof(struct Contact), 1, file);
+  scanf("%s", contact.phone);
+  contact.status = 1;
+  contact.id = lastRow++;
+  fwrite(&contact, sizeof(struct Contact), 1, file);
   fclose(file);
 }
 
 void removeContact() {
- // FILE *file = openFile("r+");
-  // int id;
-  // struct Contact *contact = malloc(sizeof(struct Contact));
+ FILE *file = openFile("r+");
+  int id;
+  struct Contact contact;
+  printf("Qual o ID do contato que deseja excluir? ");
+  scanf("%d", &id);
 
-  // printf("Qual o ID do contato que deseja excluir? ");
-  // scanf("%d", id);
-  // id--;
-
-  //contact->status = 0;
-  printf("remover");
+  while (fread(&contact, sizeof(struct Contact), 1, file)) {
+    if(contact.id == id) {
+      contact.status = 0;
+      fseek(file, id*sizeof(struct Contact), SEEK_SET);
+      fwrite(&contact, sizeof(struct Contact), 1, file);
+      break;
+    }
+  }
+  fclose(file);
 }
 void update(){
-  printf("atualizar");
+ FILE *file = openFile("r+");
+  int id,isValidEmail;
+  struct Contact newContact;
+  struct Contact contact;
+  printf("Qual o ID do contato que deseja editar? ");
+  scanf("%d", &id);
+  
+  printf("\nDigite o novo nome: ");
+  scanf("%s", newContact.name);
+  do{
+    printf("\nDigite o novo email:");
+    scanf("%s", newContact.email);
+    isValidEmail = validEmail(contact.email);
+  } while (isValidEmail != 1);
+
+  printf("\nDigite o novo telefone:");
+  scanf("%s", newContact.phone);
+  
+  while (fread(&contact, sizeof(struct Contact), 1, file)) {
+    if(contact.id == id) {
+      newContact.id = contact.id;
+      newContact.status = contact.status;
+      fseek(file, id*sizeof(struct Contact), SEEK_SET);
+      fwrite(&newContact, sizeof(struct Contact), 1, file);
+      break;
+    }
+  }
+  fclose(file);
 }
 
 void list(){
-  FILE* file;
-  file = openFile("r");
-  struct Contact *contact = malloc(sizeof(struct Contact));
-  while(!feof(file)) {
-    fread(contact, sizeof(struct Contact), 1, file);
-    if(contact->status != 0) {
-      printf("ID: %d\nNome: %s\nEmail: %s\nTelefone: %s\n\n",
-        contact->id,
-        contact->name,
-        contact->email,
-        contact->phone
-      );
+  FILE* file = openFile("r");
+  struct Contact contact;
+  while(fread(&contact, sizeof(struct Contact), 1, file)){
+    if(contact.status != 0) {
+      printf("ID: %d Nome: %s Email: %s Telefone: %s\n",
+             contact.id,
+             contact.name,
+             contact.email,
+             contact.phone);
+      printf("--------------------------------------------------------\n");
     }
   }
 }
-void search(char *src){
-  // FILE *file = openFile("r+");
-  // struct Contact *contact = malloc(sizeof(struct Contact));
-  
 
-
-  
-  
-
-	// int a,b,i,j, custo=0;
-	
-	// char palavra1[a], palavra2[b];
-	
-	// printf("digite a primeira palavra: ");
-	// scanf("%s",palavra1);
-	// printf("digite a segunda palavra: ");
-	// scanf("%s",palavra2);
-	
-	
-	
-	// int m[b+1][a+1];
-	// m[0][0]=0;
-	
-	// for (i = 1; i <= b; i++)
-  //       m[i][0] = m[i-1][0] + 1;
-  //   for (j = 1; j <= a; j++)
-  //       m[0][j] = m[0][j-1] + 1;
-  //   for (i = 1; i <= b; i++)
-  //       for (j = 1; j <= a; j++)
-  //           m[i][j] = min(m[i-1][j] + 1, m[i][j-1] + 1, m[i-1][j-1] + (palavra1[j-1] == palavra2[i-1] ? 0 : 1));
-
-  //   custo = m[b][a];
-  //   //testado para a palavra legau e legal.
-  //   printf("O custo para transformar %s em %s eh: %d", palavra1, palavra2, custo);
-	
-	
-}
-	
-// int min(int x, int y, int z){	
-
+// int minimum(int x, int y, int z){	
 // 	if(x <= y && x <= z){
 // 		return x;
 // 	}else 
@@ -136,6 +134,40 @@ void search(char *src){
 // 				return z;
 // 			}
 // }
+
+// int cost() {
+//   	for (i = 1; i <= contact; i++)
+//         m[i][0] = m[i-1][0] + 1;
+//     for (j = 1; j <= a; j++)
+//         m[0][j] = m[0][j-1] + 1;
+//     for (i = 1; i <= b; i++)
+//         for (j = 1; j <= a; j++)
+//             m[i][j] = minimum(m[i-1][j] + 1, m[i][j-1] + 1, m[i-1][j-1] + (palavra1[j-1] == palavra2[i-1] ? 0 : 1));
+
+//     cost = m[b][a];
+
+//     return cost;
+// }
+
+// void search(char *src){
+//   FILE *file = openFile("r");
+//   struct Contact contact;
+
+//   printf("Digite o nome do contato que deseja buscar: ");
+// 	scanf("%s",contact.name);
+//   struct Contact contact;
+//   int matrix[1][2];
+//   while(fread(&contact, sizeof(struct Contact), 1, file)){
+//     if(contact.status != 0) {
+//       // Achar custo
+//       // Adicionar Id e custo na matriz
+//     }
+//   }
+//   // Ordenar matriz
+//   // Imprimir
+// }
+	
+
 
 void menu(){
   int resp;
