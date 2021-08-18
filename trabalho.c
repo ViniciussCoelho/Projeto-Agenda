@@ -123,6 +123,7 @@ void update(){
 void list(){
   FILE* file = openFile("r+");
   struct Contact contact;
+  printf("------------------------------------------------------------------------\n");
   while(fread(&contact, sizeof(struct Contact), 1, file)){
     if(contact.status != 0) {
       printf("ID: %d Nome: %s Email: %s Telefone: %s\n",
@@ -130,7 +131,7 @@ void list(){
              contact.name,
              contact.email,
              contact.phone);
-      printf("--------------------------------------------------------\n");
+      printf("------------------------------------------------------------------------\n");
     }
   }
   fclose(file);
@@ -194,7 +195,7 @@ void search(char *src){
     if(contact.status != 0) {
       int cost = distance(name, strlen(name), contact.name, strlen(contact.name));
       if(cost <= 5 && n != 1) {
-        vector = (struct Temp*) realloc(vector, (n+1)*sizeof(struct Temp*));
+        vector = (struct Temp*) realloc(vector, (n)*sizeof(struct Temp*));
         vector[n-1].cost = cost;
         vector[n - 1].id = contact.id;
         strcpy(vector[n-1].name, contact.name);
@@ -226,13 +227,17 @@ void search(char *src){
       }
     }
   }
+
+  printf("------------------------------------------------------------------------\n");
   for (int i = 0; i < n-1;i++){
-    printf("\n%d. ID: %i Nome: %s Email: %s Telefone: %s\n",
+    printf("%d. ID: %i Nome: %s Email: %s Telefone: %s Custo: %d\n",
            i + 1,
            vector[i].id,
            vector[i].name,
            vector[i].email,
-           vector[i].phone);
+           vector[i].phone,
+           vector[i].cost);
+    printf("------------------------------------------------------------------------\n");
   }
 }
 	
@@ -260,7 +265,7 @@ void menu(){
       case 5:
         search("as");
         break;
-      default: printf("Essa opção não e válida.");
+      default: printf("Essa opção não é válida.\n");
         break;
     }
   } while (resp != 0);
@@ -268,6 +273,7 @@ void menu(){
 
 int main(int argc, char const *argv[])
 {
+  printf("Bem vindo a agenda, escolha uma opção para prosseguir...\n");
   menu();
   return 0;
 }
