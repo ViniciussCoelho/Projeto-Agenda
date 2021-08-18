@@ -1,3 +1,7 @@
+// TRABALHO FEITO POR: VINICIUS COELHO, GUSTAVO DO AMARAL, EDUARDO HENRIQUE
+// TURMA:TADS-A
+// AGENDA DE CONTATOS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -230,13 +234,12 @@ void search(char *src){
 
   printf("------------------------------------------------------------------------\n");
   for (int i = 0; i < n-1;i++){
-    printf("%d. ID: %i Nome: %s Email: %s Telefone: %s Custo: %d\n",
+    printf("%d. ID: %i Nome: %s Email: %s Telefone: %s\n",
            i + 1,
            vector[i].id,
            vector[i].name,
            vector[i].email,
-           vector[i].phone,
-           vector[i].cost);
+           vector[i].phone);
     printf("------------------------------------------------------------------------\n");
   }
 }
