@@ -184,7 +184,7 @@ int distance(const char * word1, int len1,const char * word2,int len2) {
   return matrix[len1][len2];
 }
 
-void search(char *src){
+void search(){
   FILE *file = openFile("r+");
   char name[30];
 
@@ -266,7 +266,7 @@ void menu(){
         list();
         break;
       case 5:
-        search("as");
+        search();
         break;
       default: printf("Essa opção não é válida.\n");
         break;
